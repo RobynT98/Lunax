@@ -1,0 +1,37 @@
+name: Create package-lock.json PR
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Generate lockfile only
+        run: npm install --package-lock-only
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: bot/add-lockfile
+          title: "chore: add package-lock.json"
+          commit-message: "chore: add package-lock.json"
+          body: |
+            This PR adds a generated `package-lock.json` for reproducible installs and CI caching.
+          add-paths: |
+            package-lock.json
+          signoff: false
