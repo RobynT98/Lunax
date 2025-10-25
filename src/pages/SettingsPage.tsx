@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { triggerDownloadExport, importFromFile } from "@/utils/exportImport";
-import { getSettings, putSettings, type Settings } from "@/db/schema";
+import { useThemeStore } from "@/state/themeStore";
+import { getSettings, type Settings } from "@/db/schema";
 
 const THEMES: Array<{ key: Settings["theme"]; label: string }> = [
   { key: "dark", label: "Mörk" },
@@ -17,25 +18,22 @@ const FONTS = {
 };
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<Settings | null>(null);
+  // Hämta state & actions från store
+  const {
+    theme, fontBody, fontHeading, highContrast, reduceMotion,
+    setTheme, setFontBody, setFontHeading, setHighContrast, setReduceMotion, initFromDB
+  } = useThemeStore();
+
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string>("");
   const fileRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      const s = await getSettings();
-      setSettings(s);
-    })();
-  }, []);
-
-  // ——— UI Helpers
   const note = (text: string) => {
     setMsg(text);
     window.setTimeout(() => setMsg(""), 3500);
   };
 
-  // ——— Actions
+  // —— Export / Import
   const onExport = async () => {
     try {
       setBusy(true);
@@ -57,14 +55,8 @@ export default function SettingsPage() {
       setBusy(true);
       const res = await importFromFile(file);
       note(`Import klar: ${res.importedEntries} inlägg, ${res.importedBlobs} bilagor.`);
-      // Ladda om settings efter import
-      const s = await getSettings();
-      setSettings(s);
-      // Uppdatera body-klass om tema ändrats
-      if (s?.theme) {
-        document.body.className = `theme-${s.theme}`;
-        localStorage.setItem("lunax-theme", `theme-${s.theme}`);
-      }
+      // Läs om settings från DB (om importen innehöll nya)
+      await initFromDB();
     } catch (e: any) {
       note(`Import misslyckades: ${e?.message || e}`);
     } finally {
@@ -72,38 +64,6 @@ export default function SettingsPage() {
       setBusy(false);
     }
   };
-
-  const updateSetting = async (patch: Partial<Settings>, announce?: string) => {
-    const next = await putSettings(patch);
-    setSettings(next);
-    if (announce) note(announce);
-  };
-
-  const onThemeChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const themeKey = e.target.value as Settings["theme"];
-    await updateSetting({ theme: themeKey }, "Tema uppdaterat.");
-    // byt omedelbart i UI
-    const cls = `theme-${themeKey}`;
-    document.body.className = cls;
-    localStorage.setItem("lunax-theme", cls);
-  };
-
-  const onBodyFont = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    await updateSetting({ fontBody: e.target.value }, "Brödtext-typsnitt uppdaterat.");
-    document.documentElement.style.setProperty("--font-sans", e.target.value);
-  };
-
-  const onHeadingFont = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    await updateSetting({ fontHeading: e.target.value }, "Rubrik-typsnitt uppdaterat.");
-  };
-
-  if (!settings) {
-    return (
-      <div className="min-h-screen p-6 max-w-3xl mx-auto">
-        <div className="card">Laddar inställningar…</div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen p-6 max-w-3xl mx-auto space-y-6">
@@ -126,8 +86,8 @@ export default function SettingsPage() {
             Tema
             <select
               className="mt-1 w-full bg-transparent border border-[color:var(--brand-muted)]/40 rounded-lg p-2"
-              value={settings.theme}
-              onChange={onThemeChange}
+              value={theme}
+              onChange={(e) => setTheme(e.target.value as Settings["theme"])}
             >
               {THEMES.map((t) => (
                 <option key={t.key} value={t.key}>{t.label}</option>
@@ -139,8 +99,8 @@ export default function SettingsPage() {
             Brödtext-typsnitt
             <select
               className="mt-1 w-full bg-transparent border border-[color:var(--brand-muted)]/40 rounded-lg p-2"
-              value={settings.fontBody}
-              onChange={onBodyFont}
+              value={fontBody}
+              onChange={(e) => setFontBody(e.target.value)}
             >
               {FONTS.body.map((f) => (
                 <option key={f} value={f}>{f}</option>
@@ -152,8 +112,8 @@ export default function SettingsPage() {
             Rubrik-typsnitt
             <select
               className="mt-1 w-full bg-transparent border border-[color:var(--brand-muted)]/40 rounded-lg p-2"
-              value={settings.fontHeading}
-              onChange={onHeadingFont}
+              value={fontHeading}
+              onChange={(e) => setFontHeading(e.target.value)}
             >
               {FONTS.heading.map((f) => (
                 <option key={f} value={f}>{f}</option>
@@ -188,23 +148,23 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* Tillgänglighet – enklare toggles (kan byggas ut senare) */}
+      {/* Tillgänglighet */}
       <section className="card">
         <h2 className="text-xl font-semibold mb-3">Tillgänglighet</h2>
         <div className="flex flex-col gap-2 text-sm">
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
-              checked={settings.highContrast}
-              onChange={(e) => updateSetting({ highContrast: e.target.checked }, "Högkontrast uppdaterat.")}
+              checked={highContrast}
+              onChange={(e) => setHighContrast(e.target.checked)}
             />
             Högkontrastläge
           </label>
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
-              checked={settings.reduceMotion}
-              onChange={(e) => updateSetting({ reduceMotion: e.target.checked }, "Animationsnivå uppdaterad.")}
+              checked={reduceMotion}
+              onChange={(e) => setReduceMotion(e.target.checked)}
             />
             Minska animationer
           </label>
