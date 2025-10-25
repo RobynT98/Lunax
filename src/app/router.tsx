@@ -30,7 +30,7 @@ function HomePage() {
   );
 }
 
-// ——— Stubb för inställningar (tema/fonter m.m. kommer snart)
+// ——— Stubb för inställningar
 function SettingsPage() {
   return (
     <div className="min-h-screen p-6 max-w-3xl mx-auto">
@@ -75,31 +75,19 @@ function RouteErrorBoundary() {
   );
 }
 
-// Router-konfig
-const router = createBrowserRouter([
+const router = createBrowserRouter(
+  [
+    { path: "/", element: <HomePage />, errorElement: <RouteErrorBoundary /> },
+    { path: "/new", element: <EditorPage /> },
+    { path: "/entry/:id", element: <EditorPage /> },
+    { path: "/settings", element: <SettingsPage /> },
+    { path: "*", element: <NotFoundPage /> }
+  ],
   {
-    path: "/",
-    element: <HomePage />,
-    errorElement: <RouteErrorBoundary />
-  },
-  {
-    path: "/new",
-    element: <EditorPage />
-  },
-  {
-    path: "/entry/:id",
-    // Vi återanvänder EditorPage; i nästa steg läser vi :id via useParams och laddar inlägget.
-    element: <EditorPage />
-  },
-  {
-    path: "/settings",
-    element: <SettingsPage />
-  },
-  {
-    path: "*",
-    element: <NotFoundPage />
+    // Viktigt för GitHub Pages: baseras på Vite base (Pages repo-subpath)
+    basename: import.meta.env.BASE_URL
   }
-]);
+);
 
 export default function AppRouter() {
   return <RouterProvider router={router} />;
