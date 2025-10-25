@@ -1,51 +1,67 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import { VitePWA } from 'vite-plugin-pwa';
-import { resolve } from 'path';
+name: Deploy Lunax to GitHub Pages
 
-// Respektera Pages-base (sätts i CI som VITE_BASE), annars "/"
-const base = process.env.VITE_BASE ?? '/';
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
 
-export default defineConfig({
-  base,
-  plugins: [
-    react(),
-    VitePWA({
-      strategies: 'injectManifest',
-      srcDir: 'src/pwa',
-      filename: 'sw.ts',
-      injectRegister: 'auto',
-      registerType: 'prompt',
-      devOptions: {
-        enabled: true,
-        suppressWarnings: true,
-        type: 'module'
-      },
-      // Manifest ligger i /public (explicit)
-      manifest: false,
-      includeAssets: [
-        'icons/favicon.svg',
-        'icons/favicon.ico',
-        'icons/apple-touch-icon.png',
-        'icons/mask-icon.svg'
-      ],
-      workbox: {
-        // relativ fallback funkar oavsett base i Pages
-        navigateFallback: 'index.html'
-      }
-    })
-  ],
-  resolve: {
-    alias: {
-      '@': resolve(__dirname, 'src')
-    }
-  },
-  server: {
-    port: 5173,
-    strictPort: true
-  },
-  preview: {
-    port: 4173,
-    strictPort: true
-  }
-});
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          # Ingen cache när vi saknar lockfil
+
+      - name: NPM config (snabbare CI)
+        run: |
+          npm config set fund false
+          npm config set audit false
+
+      - name: Install deps (utan lock)
+        run: npm install
+
+      - name: Compute VITE_BASE
+        run: |
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+          if [[ "$REPO_NAME" == *.github.io ]]; then
+            echo "VITE_BASE=/" >> $GITHUB_ENV
+          else
+            echo "VITE_BASE=/${REPO_NAME}/" >> $GITHUB_ENV
+          fi
+          echo "Using VITE_BASE=$VITE_BASE"
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_BASE: ${{ env.VITE_BASE }}
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
