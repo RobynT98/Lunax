@@ -25,14 +25,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "npm"
+          # Ingen cache när vi saknar lockfil
 
-      - name: Install deps
-        run: npm ci
+      - name: NPM config (snabbare CI)
+        run: |
+          npm config set fund false
+          npm config set audit false
 
-      # Sätter rätt base path för Vite beroende på repo-typ:
-      #   - user/org pages:  owner.github.io  -> base = "/"
-      #   - project pages:   owner/repo       -> base = "/repo/"
+      - name: Install deps (utan lock)
+        run: npm install
+
       - name: Compute VITE_BASE
         run: |
           REPO_NAME="${GITHUB_REPOSITORY#*/}"
