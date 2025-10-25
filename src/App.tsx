@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import AppRouter from "@/app/router";
-import { getSettings, putSettings, type Settings } from "@/db/schema";
+import { getSettings, type Settings } from "@/db/schema";
+import NetworkAndInstall from "@/components/NetworkAndInstall";
+import BottomNav from "@/components/BottomNav";
 
 export default function App() {
   const [theme, setTheme] = useState("theme-dark");
 
+  // Läs tema vid start
   useEffect(() => {
     (async () => {
       try {
@@ -22,32 +25,16 @@ export default function App() {
     })();
   }, []);
 
+  // Applicera klass på body
   useEffect(() => {
     document.body.className = theme;
   }, [theme]);
 
-  const toggleTheme = async () => {
-    const next =
-      theme === "theme-dark"
-        ? "theme-parchment"
-        : theme === "theme-parchment"
-        ? "theme-midnight"
-        : "theme-dark";
-    setTheme(next);
-    localStorage.setItem("lunax-theme", next);
-    await putSettings({ theme: next.replace("theme-", "") as Settings["theme"] });
-  };
-
   return (
-    <div className="min-h-screen">
-      <button
-        className="fixed top-4 right-4 px-3 py-1 text-sm bg-[color:var(--brand)] text-[color:var(--brand-fg)] rounded-lg opacity-80 hover:opacity-100 transition z-50"
-        onClick={toggleTheme}
-        title="Byt tema"
-      >
-        🎨
-      </button>
+    <div className="min-h-screen relative pb-24">
       <AppRouter />
+      <NetworkAndInstall />
+      <BottomNav />
     </div>
   );
 }
