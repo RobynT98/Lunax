@@ -19,7 +19,7 @@
   <body class="bg-neutral-950 text-neutral-100 font-sans">
     <noscript>Du behöver JavaScript aktiverat för att använda Lunax.</noscript>
     <div id="root"></div>
-    <!-- Vite kommer skriva om denna referens korrekt vid build med base -->
-    <script type="module" src="/src/main.tsx"></script>
+    <!-- Viktigt: RELATIV sökväg, så Vite respekterar base (/Lunax/) -->
+    <script type="module" src="src/main.tsx"></script>
   </body>
 </html>
