@@ -5,7 +5,6 @@ import { getSettings, putSettings, type Settings } from "@/db/schema";
 export default function App() {
   const [theme, setTheme] = useState("theme-dark");
 
-  // Läs sparat tema från IndexedDB (eller fallback till localStorage)
   useEffect(() => {
     (async () => {
       try {
@@ -23,7 +22,6 @@ export default function App() {
     })();
   }, []);
 
-  // Applicera klass på <body>
   useEffect(() => {
     document.body.className = theme;
   }, [theme]);
