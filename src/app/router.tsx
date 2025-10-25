@@ -6,8 +6,9 @@ import {
   useRouteError,
 } from "react-router-dom";
 import EditorPage from "@/pages/EditorPage";
+import SettingsPage from "@/pages/SettingsPage";
 
-// ——— Stubb för startsida (ersätts senare med riktig listvy)
+// ——— Temporär startsida (listvy kommer senare)
 function HomePage() {
   return (
     <div className="min-h-screen p-6 max-w-3xl mx-auto">
@@ -24,27 +25,6 @@ function HomePage() {
         <p className="text-text-muted">
           Det här är en temporär startsida. Gå till <Link className="underline" to="/new">Nytt inlägg</Link> för att börja skriva.
           Senare kommer denna vy lista dina senaste inlägg, filter och sök.
-        </p>
-      </div>
-    </div>
-  );
-}
-
-// ——— Stubb för inställningar
-function SettingsPage() {
-  return (
-    <div className="min-h-screen p-6 max-w-3xl mx-auto">
-      <header className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-brand">Inställningar</h1>
-        <nav className="flex gap-3">
-          <Link className="underline" to="/">Hem</Link>
-          <Link className="underline" to="/new">Nytt inlägg</Link>
-        </nav>
-      </header>
-
-      <div className="card">
-        <p className="text-text-muted">
-          Här kommer temaväljare, fonter, export/import och lås.
         </p>
       </div>
     </div>
@@ -75,6 +55,7 @@ function RouteErrorBoundary() {
   );
 }
 
+// Router-konfig
 const router = createBrowserRouter(
   [
     { path: "/", element: <HomePage />, errorElement: <RouteErrorBoundary /> },
@@ -84,7 +65,7 @@ const router = createBrowserRouter(
     { path: "*", element: <NotFoundPage /> }
   ],
   {
-    // Viktigt för GitHub Pages: baseras på Vite base (Pages repo-subpath)
+    // Viktigt för GitHub Pages: baserat på Vite base (Pages repo-subpath)
     basename: import.meta.env.BASE_URL
   }
 );
