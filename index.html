@@ -6,45 +6,91 @@
     <meta name="theme-color" content="#1b1b1b" />
     <meta name="description" content="Lunax – lokal-först PWA-dagbok med rich text och JSON export/import." />
 
-    <!-- Dessa får gärna använda %BASE_URL% -->
+    <!-- Viktigt: dessa använder BASE_URL så de funkar på /Lunax/ -->
     <link rel="icon" type="image/svg+xml" href="%BASE_URL%icons/favicon.svg" />
     <link rel="manifest" href="%BASE_URL%manifest.webmanifest" />
+
     <title>Lunax</title>
 
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:wght@400;700&family=Cormorant:wght@500&family=JetBrains+Mono:wght@400;600&display=swap"
       rel="stylesheet"
     />
+
     <style>
-      #boot-fallback{position:fixed;inset:0;display:grid;place-items:center;background:#0f0f10;color:#e5e7eb;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif}
-      #boot-fallback .card{padding:12px 14px;border-radius:12px;background:#1f1f22;border:1px solid rgba(255,255,255,.06);max-width:560px}
-      #boot-fallback code{background:rgba(255,255,255,.06);padding:2px 4px;border-radius:6px}
+      #boot-fallback {
+        position: fixed; inset: 0; display: grid; place-items: center;
+        background: #0f0f10; color: #e5e7eb;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif;
+      }
+      #boot-fallback .card {
+        padding: 12px 14px; border-radius: 12px; background: #1f1f22;
+        border: 1px solid rgba(255,255,255,.06); max-width: 560px;
+      }
+      #boot-fallback code { background: rgba(255,255,255,.06); padding: 2px 4px; border-radius: 6px; }
+      #boot-error { white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; opacity: .9; margin-top: 6px; }
     </style>
+
+    <!-- Fångar JS-fel tidigt och visar dem i fallback-kortet -->
+    <script>
+      (function () {
+        function showFallback(msg) {
+          var el = document.getElementById('boot-fallback');
+          if (!el) return;
+          el.hidden = false;
+          var m = document.getElementById('boot-error');
+          if (m) m.textContent = msg || '';
+        }
+
+        // Visa fallback om bundlen inte mountar inom 3s
+        var shown = false;
+        var t = setTimeout(function () {
+          if (shown) return;
+          shown = true;
+          showFallback("Appen startade inte (timeout).");
+        }, 3000);
+
+        // Gör global fn som bundlen kallar när allt är igång
+        window.__lunaxBootOk = function () {
+          shown = true;
+          clearTimeout(t);
+          var el = document.getElementById('boot-fallback');
+          if (el) el.hidden = true;
+        };
+
+        // Fånga fel/Promise-rejections
+        window.addEventListener('error', function (e) {
+          shown = true; clearTimeout(t);
+          var detail = (e && e.error && (e.error.stack || e.error.message)) || (e && e.message) || String(e);
+          showFallback("Krasch vid uppstart:\n" + detail);
+        });
+        window.addEventListener('unhandledrejection', function (e) {
+          shown = true; clearTimeout(t);
+          var r = e && e.reason;
+          var detail = (r && (r.stack || r.message)) || JSON.stringify(r || {});
+          showFallback("Ohanterat fel:\n" + detail);
+        });
+      })();
+    </script>
   </head>
 
   <body class="bg-neutral-950 text-neutral-100 font-sans">
     <noscript>Du behöver JavaScript aktiverat för att använda Lunax.</noscript>
     <div id="root"></div>
 
+    <!-- Fallback-kort (visas om bundlen inte startar) -->
     <div id="boot-fallback" hidden>
       <div class="card">
         <strong>Kunde inte starta appen.</strong>
+        <div id="boot-error"></div>
         <div style="font-size:14px;margin-top:6px;opacity:.9">
           Testa att uppdatera, eller öppna <code>%BASE_URL%</code> i ny flik.
-          Om problemet kvarstår: rensa “Site data” och inaktivera ev. gammal service worker.
+          Om problemet kvarstår: rensa ”Site data” och inaktivera ev. gammal service worker.
         </div>
       </div>
     </div>
-    <script>
-      (function () {
-        var shown=false, t=setTimeout(function(){if(shown)return;shown=true;var el=document.getElementById('boot-fallback');if(el)el.hidden=false;},3000);
-      // @ts-ignore
-        window.__lunaxBootOk=function(){shown=true;clearTimeout(t);}
-      })();
-    </script>
 
-    <!-- Viktigt: lämna modulvägen PROJEKTRELATIV.
-         Vite kommer automatiskt skriva om den med base (/Lunax/) vid build. -->
+    <!-- OBS: lämna modulvägen projektrelativ, Vite skriver om med base -->
     <script type="module" src="src/main.tsx"></script>
   </body>
 </html>
