@@ -1,0 +1,161 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------------------------------------------
+   Globala CSS-variabler och temagrund
+--------------------------------------------------- */
+
+:root {
+  --brand: #8b1e2d;
+  --brand-fg: #ffffff;
+  --brand-muted: #5a0f18;
+
+  --surface: #fdfcf9;
+  --surface-alt: #f8f5ee;
+  --surface-paper: #f3ead7;
+
+  --text: #1b1b1b;
+  --text-muted: #444;
+
+  --radius: 1rem;
+}
+
+/* ---------------------------------------------------
+   Teman
+--------------------------------------------------- */
+
+/* Mörkt tema */
+.theme-dark {
+  --surface: #0f0f10;
+  --surface-alt: #171718;
+  --surface-paper: #222;
+  --text: #eaeaea;
+  --text-muted: #b3b3b3;
+  --brand: #8b1e2d;
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+/* Parchment – pergamentfärgad, varm ton */
+.theme-parchment {
+  --surface: #f9f4e6;
+  --surface-alt: #f5ecd4;
+  --surface-paper: #efe4c9;
+  --text: #32210f;
+  --text-muted: #5e4b2a;
+  --brand: #8b1e2d;
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+/* Midnight – mörkblå + mörkröd accent */
+.theme-midnight {
+  --surface: #0d101b;
+  --surface-alt: #151a2c;
+  --surface-paper: #202844;
+  --text: #e6e8ef;
+  --text-muted: #a6aac4;
+  --brand: #8b1e2d;
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+/* Forest – gröntonad variant */
+.theme-forest {
+  --surface: #0e1612;
+  --surface-alt: #18231b;
+  --surface-paper: #1f2e24;
+  --text: #d8e3dc;
+  --text-muted: #97b09f;
+  --brand: #8b1e2d;
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+/* Obsidian – djup svartgrå */
+.theme-obsidian {
+  --surface: #0b0b0b;
+  --surface-alt: #161616;
+  --surface-paper: #1f1f1f;
+  --text: #e0e0e0;
+  --text-muted: #9b9b9b;
+  --brand: #8b1e2d;
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+/* Övergångar */
+body {
+  transition: background-color 0.4s ease, color 0.4s ease;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+/* Länkar, knappar och kort */
+a {
+  color: var(--brand);
+}
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  @apply px-3 py-2 rounded-lg font-medium transition;
+  background-color: var(--brand);
+  color: var(--brand-fg);
+}
+button:hover {
+  opacity: 0.85;
+}
+
+/* Enkla kort */
+.card {
+  background-color: var(--surface-alt);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  padding: 1rem;
+}
+
+/* Scrollbar (webkit) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--surface-alt);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--brand-muted);
+  border-radius: 6px;
+}
+
+/* Editortext (liten justering för TipTap) */
+.ProseMirror {
+  outline: none;
+  padding: 1rem;
+  min-height: 70vh;
+  line-height: 1.7;
+  color: var(--text);
+  background-color: var(--surface-paper);
+  border-radius: var(--radius);
+}
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+}
+.ProseMirror ul,
+.ProseMirror ol {
+  margin-left: 1.25rem;
+  padding-left: 1.25rem;
+}
+.ProseMirror blockquote {
+  border-left: 3px solid var(--brand);
+  padding-left: 1rem;
+  margin-left: 0;
+  opacity: 0.85;
+}
